@@ -182,6 +182,40 @@ library Events {
     );
 
     /**
+     * @dev Emitted when a "channel" is created.
+     *
+     * @param profileId The profile's token ID.
+     * @param pubId The new publication's ID.
+     * @param contentURI The URI mapped to this new publication.
+     * @param collectModule The collect module mapped to this new publication. This CANNOT be the zero address.
+     * @param collectModuleReturnData The data returned from the collect module's initialization for this given
+     * publication. This is abi encoded and totally depends on the collect module chosen.
+     * @param referenceModule The reference module set for this publication.
+     * @param referenceModuleReturnData The data returned from the reference module at initialization. This is abi
+     * encoded and totally depends on the reference module chosen.
+     * @param timestamp The current block timestamp.
+     */
+    event ChannelCreated(
+        profileId,
+        pubId,
+        contentURI,
+        collectModule,
+        collectModuleReturnData,
+        referenceModule,
+        referenceModuleReturnData,
+        block.timestamp
+        
+        uint256 indexed profileId,
+        uint256 indexed pubId,
+        string contentURI,
+        address collectModule,
+        bytes collectModuleReturnData,
+        address referenceModule,
+        bytes referenceModuleReturnData,
+        uint256 timestamp
+    );
+
+    /**
      * @dev Emitted when a "post" is published.
      *
      * @param profileId The profile's token ID.

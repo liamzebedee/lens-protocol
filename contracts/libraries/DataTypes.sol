@@ -71,6 +71,15 @@ library DataTypes {
         string followNFTURI;
     }
 
+    struct ChannelStruct {
+        // TODO: the channel owner should by determined by a canonical "owner" NFT.
+        address owner;
+        string handle;
+        string imageURI;
+        address followModule;
+        address authorModule;
+    }
+
     /**
      * @notice A struct containing data associated with each new publication.
      *
@@ -107,6 +116,29 @@ library DataTypes {
         address followModule;
         bytes followModuleData;
         string followNFTURI;
+    }
+
+    /**
+     * @notice A struct containing the parameters required for the `createChannel()` function.
+     *
+     * @param to The address receiving the channel.
+     * @param handle The name to set for the channel, must be non-empty but doesn't need to be unique.
+     * @param imageURI The URI to set for the given profile image.
+     * @param followModule The follow module to use, can be the zero address.
+     * @param followModuleData The follow module initialization data, if any.
+     * @param followNFTURI The URI to use for the follow NFT.
+     * @param authorModule The author module to use, can be the zero address.
+     * @param authorModuleData The author module initialization data, if any.
+     */
+    struct CreateChannelData {
+        address owner;
+        string handle;
+        string imageURI;
+        address followModule;
+        bytes followModuleData;
+        string followNFTURI;
+        address authorModule;
+        bytes authorModuleData;
     }
 
     /**

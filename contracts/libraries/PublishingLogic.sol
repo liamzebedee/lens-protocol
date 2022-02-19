@@ -104,6 +104,72 @@ library PublishingLogic {
     }
 
     /**
+     * @notice Creates a channel.
+     *
+     * @dev To avoid a stack too deep error, reference parameters are passed in memory rather than calldata.
+     */
+    function createChannel(
+        uint256 channelId,
+        address owner,
+        string memory handle,
+        string memory imageURI,
+        address followModule,
+        bytes memory followModuleData,
+        string memory followNFTURI,
+        address authorModule,
+        bytes memory authorModuleData,
+        mapping(uint256 => DataTypes.ProfileStruct) storage _channelById,
+        // mapping(uint256 => mapping(uint256 => DataTypes.PublicationStruct))
+        //     storage _pubByIdByProfile,
+        // mapping(address => bool) storage _collectModuleWhitelisted,
+        // mapping(address => bool) storage _referenceModuleWhitelisted
+    ) {
+        _channelById[channelId].owner = vars.owner;
+        _channelById[channelId].handle = vars.handle;
+        _channelById[channelId].imageURI = vars.imageURI;
+        _channelById[channelId].authorModule = vars.authorModule;
+        
+        if (vars.followModule != address(0)) {
+            _channelById[channelId].followModule = vars.followModule;
+        }
+
+        if (vars.authorModule != address(0)) {
+            _channelById[channelId].authorModule = vars.authorModule;
+        }
+        
+        // Follow module initialization.
+        bytes memory followModuleReturnData = _initFollowModule(
+            profileId,
+            vars.followModule,
+            vars.followModuleData,
+            _followModuleWhitelisted
+        );
+
+        _emitProfileCreated(profileId, vars, followModuleReturnData);
+
+        // Author module initialization
+        bytes memory authorModuleReturnData = _initPubAuthorModule(
+            profileId,
+            pubId,
+            collectModule,
+            collectModuleData,
+            _pubByIdByProfile,
+            _collectModuleWhitelisted
+        );
+
+        emit Events.ChannelCreated(
+            profileId,
+            pubId,
+            contentURI,
+            collectModule,
+            collectModuleReturnData,
+            referenceModule,
+            referenceModuleReturnData,
+            block.timestamp
+        );
+    }
+
+    /**
      * @notice Creates a post publication mapped to the given profile.
      *
      * @dev To avoid a stack too deep error, reference parameters are passed in memory rather than calldata.
@@ -295,6 +361,8 @@ library PublishingLogic {
             block.timestamp
         );
     }
+
+    function _initPubAuthorModule() {}
 
     function _initPubCollectModule(
         uint256 profileId,

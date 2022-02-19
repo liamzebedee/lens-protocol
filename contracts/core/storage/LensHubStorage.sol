@@ -64,9 +64,11 @@ contract LensHubStorage {
     mapping(uint256 => address) internal _dispatcherByProfile;
     mapping(bytes32 => uint256) internal _profileIdByHandleHash;
     mapping(uint256 => DataTypes.ProfileStruct) internal _profileById;
+    mapping(uint256 => DataTypes.ChannelStruct) internal _channelById;
     mapping(uint256 => mapping(uint256 => DataTypes.PublicationStruct)) internal _pubByIdByProfile;
 
     uint256 internal _profileCounter;
+    uint256 internal _channelCounter;
     address internal _governance;
     address internal _emergencyAdmin;
 }

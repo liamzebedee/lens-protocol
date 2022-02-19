@@ -326,6 +326,23 @@ contract LensHub is ILensHub, LensNFTBase, VersionedInitializable, LensMultiStat
     }
 
     /// @inheritdoc ILensHub
+    function createChannel(DataTypes.ChannelData calldata vars) external override {
+        uint256 channelId = ++_channelCounter;
+        
+        _createChannel(
+            channelId,
+            vars.owner,
+            vars.handle,
+            vars.imageURI,
+            vars.followModule,
+            vars.followModuleData,
+            vars.followNFTURI,
+            vars.authorModule,
+            vars.authorModuleData
+        );
+    }
+
+    /// @inheritdoc ILensHub
     function post(DataTypes.PostData calldata vars) external override whenPublishingEnabled {
         _validateCallerIsProfileOwnerOrDispatcher(vars.profileId);
         _createPost(
@@ -851,6 +868,29 @@ contract LensHub is ILensHub, LensNFTBase, VersionedInitializable, LensMultiStat
         address prevGovernance = _governance;
         _governance = newGovernance;
         emit Events.GovernanceSet(msg.sender, prevGovernance, newGovernance, block.timestamp);
+    }
+
+    function _createChannel(
+        uint256 channelId,
+        address owner,
+        string memory handle,
+        string memory imageURI,
+        address followModule,
+        bytes memory followModuleData,
+        string memory followNFTURI,
+        address authorModule,
+        bytes memory authorModuleData
+    ) internal {
+        PublishingLogic.createChannel(
+            to,
+            handle,
+            imageURI,
+            followModule,
+            followModuleData,
+            followNFTURI,
+            authorModule,
+            authorModuleData
+        );
     }
 
     function _createPost(
