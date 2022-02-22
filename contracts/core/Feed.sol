@@ -65,8 +65,9 @@ contract Feed {
         lensHub = LensHub(_lensHub);
     }
 
-    function createFeed(CreateFeedData calldata vars) external {
-        uint256 feedId = _feedCount++;
+    function createFeed(CreateFeedData calldata vars) external returns (uint256 feedId) {
+        uint256 feedId = _feedCount;
+        _feedCount++;
         
         // Create a profile.
         DataTypes.CreateProfileData memory createProfileData;
@@ -77,10 +78,17 @@ contract Feed {
         // 2) `feedId` could be encoded as a string.
         // Sooooo, this is the hack workaround.
         createProfileData.handle = string(abi.encodePacked(
-            "annonce_feed_",
-            feedId,
-            "_",
-            keccak256(abi.encodePacked(blockhash(block.number)))
+            "annonce.feed.",
+            _toString(feedId)
+            // keccak256(
+            //     "annonce_feed_",
+            //     feedId,
+            //     "_",
+            //     abi.encodePacked(
+            //         blockhash(block.number), 
+            //         tx.origin
+            //     )
+            // )
         ));
         createProfileData.imageURI = vars.imageURI;
         createProfileData.followModule = vars.followModule;
@@ -94,6 +102,8 @@ contract Feed {
         _feedIdToFeed[feedId].owner = vars.owner;
         _feedIdToFeed[feedId].name = vars.name;
         _feedIdToFeed[feedId].profileId = profileId;
+
+        return feedId;
     }
 
     function getFeedProfile(uint256 feedId) public view returns (uint256) {
@@ -132,7 +142,7 @@ contract Feed {
     }
 
     function _onlyOwner(uint256 feedId) internal view {
-        if(msg.sender == _feedIdToFeed[feedId].owner)
+        if(msg.sender != _feedIdToFeed[feedId].owner)
             revert("sender not feed owner");
     }
 
@@ -150,6 +160,38 @@ contract Feed {
             profileId,
             createPost
         );
+    }
+
+    function getFeedCount() public view returns (uint) {
+        return _feedCount;
+    }
+
+
+    // 
+    // 
+    // LIBRARIES.
+    // 
+    // 
+    function _toString(uint256 value) internal pure returns (string memory) {
+        // Inspired by OraclizeAPI's implementation - MIT license
+        // https://github.com/oraclize/ethereum-api/blob/b42146b063c7d6ee1358846c198246239e9360e8/oraclizeAPI_0.4.25.sol
+
+        if (value == 0) {
+            return "0";
+        }
+        uint256 temp = value;
+        uint256 digits;
+        while (temp != 0) {
+            digits++;
+            temp /= 10;
+        }
+        bytes memory buffer = new bytes(digits);
+        while (value != 0) {
+            digits -= 1;
+            buffer[digits] = bytes1(uint8(48 + uint256(value % 10)));
+            value /= 10;
+        }
+        return string(buffer);
     }
 }
 
