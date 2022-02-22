@@ -22,7 +22,9 @@ import {
   TimedFeeCollectModule__factory,
   TransparentUpgradeableProxy__factory,
   Feed__factory,
+  Events__factory,
 } from '../typechain-types';
+import { Events } from '../typechain-types';
 import { deployContract, waitForTx } from './helpers/utils';
 
 const TREASURY_FEE_BPS = 50;
@@ -261,6 +263,8 @@ task('full-deploy', 'deploys the entire Lens Protocol').setAction(async ({}, hre
   fs.writeFileSync('addresses.json', json, 'utf-8');
 
 
+
+
   // Now save to deployments.json.
   
   type ABIItem = any
@@ -272,6 +276,7 @@ task('full-deploy', 'deploys the entire Lens Protocol').setAction(async ({}, hre
     abi: ABIItem[]
   }
   
+  
   const deploymentFilePath = join(__dirname, `../../deployments/${hre.network.name}.json`)
   const deployments = require(deploymentFilePath)
   console.debug(`Saving deployment info to ${deploymentFilePath}`)
@@ -279,7 +284,11 @@ task('full-deploy', 'deploys the entire Lens Protocol').setAction(async ({}, hre
     'LensHub': {
       instance: lensHubImpl,
       address: lensHub.address,
-      abi: LensHub__factory.abi,
+      abi: LensHub__factory.abi
+        .concat(PublishingLogic__factory.abi)
+        .concat(InteractionLogic__factory.abi)
+        .concat(Events__factory.abi)
+        ,
       bytecode: LensHub__factory.bytecode
     },
     'Feed': {
