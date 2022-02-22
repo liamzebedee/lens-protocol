@@ -1,5 +1,5 @@
 import { task } from 'hardhat/config';
-import { Feed__factory, LensHub__factory } from '../typechain-types';
+import { Events__factory, Feed__factory, LensHub__factory } from '../typechain-types';
 import { CreateFeedDataStruct } from '../typechain-types/Feed';
 import { CreateProfileDataStruct } from '../typechain-types/LensHub';
 import { ProtocolState, waitForTx, initEnv, getAddrs, ZERO_ADDRESS } from './helpers/utils';
@@ -15,6 +15,15 @@ task('setup-mock-env', 'setup a mock environment with data').setAction(async ({ 
     console.log('Unpausing protocol')
     await waitForTx(lensHub.setState(ProtocolState.Unpaused));
 
+    // Events are emitted from the proxy contract.
+    // const Events = Events__factory.connect(addrs['lensHub proxy'], user)
+    // Events.on(Events.filters.PostCreated(), (ev) => {
+    //     console.log(`PostCreated`, ev)
+    // })
+    // Events.on(Events.filters.ProfileCreated(), (ev) => {
+    //     console.log(`ProfileCreated`, ev)
+    // })
+    
     // Whitelisting.
     console.log('Whitelisting')
     await waitForTx(
@@ -59,8 +68,9 @@ task('setup-mock-env', 'setup a mock environment with data').setAction(async ({ 
         console.error(ex)
     }
 
+    const PUBLISHER_PROFILE_ID = await lensHub.getProfileIdByHandle('publisher')
     console.log(
-        `@publisher profileId ${await lensHub.getProfileIdByHandle('publisher')}`
+        `@publisher profileId ${PUBLISHER_PROFILE_ID}`
     )
     console.log(
         `@follower profileId ${await lensHub.getProfileIdByHandle('follower')}`
@@ -103,7 +113,7 @@ task('setup-mock-env', 'setup a mock environment with data').setAction(async ({ 
     console.log('Adding posts to feeds')
     const post1 = {
         feedId: FEED_ID,
-        authorProfileId: '1',
+        authorProfileId: PUBLISHER_PROFILE_ID,
         contentURI: "",
 
         // TODO: Future design decisions about these variables.

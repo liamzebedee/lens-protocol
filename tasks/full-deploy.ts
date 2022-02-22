@@ -107,7 +107,7 @@ task('full-deploy', 'deploys the entire Lens Protocol').setAction(async ({}, hre
   let proxy = await deployContract(
     new TransparentUpgradeableProxy__factory(deployer).deploy(
       lensHubImpl.address,
-      deployer.address,
+      accounts[3].address,
       data,
       { nonce: deployerNonce++ }
     )
@@ -281,14 +281,26 @@ task('full-deploy', 'deploys the entire Lens Protocol').setAction(async ({}, hre
   const deployments = require(deploymentFilePath)
   console.debug(`Saving deployment info to ${deploymentFilePath}`)
   const deployedContracts = {
-    'LensHub': {
+    'LensHubImpl': {
       instance: lensHubImpl,
-      address: lensHub.address,
+      address: lensHubImpl.address,
       abi: LensHub__factory.abi
         .concat(PublishingLogic__factory.abi)
         .concat(InteractionLogic__factory.abi)
         .concat(Events__factory.abi)
         ,
+      bytecode: LensHub__factory.bytecode
+    },
+    'LensHubProxy': {
+      // TODO: workaround to get the `deployTransaction`.
+      instance: lensHubImpl,
+
+      address: lensHub.address,
+      abi: LensHub__factory.abi
+        .concat(PublishingLogic__factory.abi)
+        .concat(InteractionLogic__factory.abi)
+        .concat(Events__factory.abi)
+      ,
       bytecode: LensHub__factory.bytecode
     },
     'Feed': {
