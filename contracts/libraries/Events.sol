@@ -465,18 +465,4 @@ library Events {
         bool[] approved,
         uint256 timestamp
     );
-
-    // TODO: work on this design.
-    event FeedProfilePermissionsSet(
-        uint256 indexed feedId,
-        uint256 indexed profileId,
-        bool createPost
-    );
-    
-    event PostToFeedCreated(
-        uint256 indexed authorProfileId,
-        uint256 indexed profileId,
-        uint256 indexed pubId,
-        uint256 timestamp
-    );
 }

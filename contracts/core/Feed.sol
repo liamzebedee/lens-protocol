@@ -103,6 +103,8 @@ contract Feed {
         _feedIdToFeed[feedId].name = vars.name;
         _feedIdToFeed[feedId].profileId = profileId;
 
+        emit FeedCreated(feedId, profileId, vars.owner);
+
         return feedId;
     }
 
@@ -133,7 +135,7 @@ contract Feed {
         uint pubId = lensHub.getPubCount(feed.profileId) + 1;
         lensHub.post(postData);
 
-        emit Events.PostToFeedCreated(
+        emit PostToFeedCreated(
             vars.authorProfileId,
             feed.profileId,
             pubId,
@@ -155,7 +157,7 @@ contract Feed {
         FeedStruct storage feed = _feedIdToFeed[feedId];
         feed.permissions[profileId].createPost = createPost;
 
-        emit Events.FeedProfilePermissionsSet(
+        emit FeedProfilePermissionsSet(
             feedId,
             profileId,
             createPost
@@ -193,6 +195,26 @@ contract Feed {
         }
         return string(buffer);
     }
+
+    event FeedCreated(
+        uint256 indexed feedId,
+        uint256 indexed profileId,
+        address indexed owner
+    );
+
+    // TODO: work on this design.
+    event FeedProfilePermissionsSet(
+        uint256 indexed feedId,
+        uint256 indexed profileId,
+        bool createPost
+    );
+    
+    event PostToFeedCreated(
+        uint256 indexed authorProfileId,
+        uint256 indexed profileId,
+        uint256 indexed pubId,
+        uint256 timestamp
+    );
 }
 
 
