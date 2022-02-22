@@ -281,7 +281,7 @@ task('full-deploy', 'deploys the entire Lens Protocol').setAction(async ({}, hre
   const deployments = require(deploymentFilePath)
   console.debug(`Saving deployment info to ${deploymentFilePath}`)
   const deployedContracts = {
-    'LensHubImpl': {
+    'LensHub': {
       instance: lensHubImpl,
       address: lensHubImpl.address,
       abi: LensHub__factory.abi
@@ -294,7 +294,6 @@ task('full-deploy', 'deploys the entire Lens Protocol').setAction(async ({}, hre
     'LensHubProxy': {
       // TODO: workaround to get the `deployTransaction`.
       instance: lensHubImpl,
-
       address: lensHub.address,
       abi: LensHub__factory.abi
         .concat(PublishingLogic__factory.abi)
@@ -302,6 +301,12 @@ task('full-deploy', 'deploys the entire Lens Protocol').setAction(async ({}, hre
         .concat(Events__factory.abi)
       ,
       bytecode: LensHub__factory.bytecode
+    },
+    'FollowNFT': {
+      instance: null,
+      address: null,
+      abi: FollowNFT__factory.abi,
+      bytecode: null
     },
     'Feed': {
       instance: feed,
@@ -316,7 +321,7 @@ task('full-deploy', 'deploys the entire Lens Protocol').setAction(async ({}, hre
     const { instance, address, abi, bytecode } = contract
     deployments["contracts"][name] = {
       address: address,
-      deployTransaction: instance.deployTransaction,
+      deployTransaction: instance?.deployTransaction,
       abi,
       bytecode
     };

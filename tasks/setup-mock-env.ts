@@ -7,10 +7,8 @@ import { ProtocolState, waitForTx, initEnv, getAddrs, ZERO_ADDRESS } from './hel
 task('setup-mock-env', 'setup a mock environment with data').setAction(async ({ }, hre) => {
     const [governance, , user] = await initEnv(hre);
     const addrs = getAddrs();
-    const lensHub = LensHub__factory.connect(addrs['lensHub proxy'], governance);
+    let lensHub = LensHub__factory.connect(addrs['lensHub proxy'], governance);
     const feed = Feed__factory.connect(addrs['feed'], user);
-
-    
     
     console.log('Unpausing protocol')
     await waitForTx(lensHub.setState(ProtocolState.Unpaused));
@@ -32,6 +30,8 @@ task('setup-mock-env', 'setup a mock environment with data').setAction(async ({ 
     await waitForTx(
         lensHub.whitelistProfileCreator(feed.address, true)
     );
+
+    lensHub = lensHub.connect(user)
 
     // Setup profiles.
     console.log('Setting up profiles')
@@ -59,21 +59,33 @@ task('setup-mock-env', 'setup a mock environment with data').setAction(async ({ 
 
     try {
         await waitForTx(
-            lensHub.connect(user).createProfile(profilePublisher)
+            lensHub.createProfile(profilePublisher)
         );
         await waitForTx(
-            lensHub.connect(user).createProfile(profileFollower)
+            lensHub.createProfile(profileFollower)
         );
     } catch(ex) {
         console.error(ex)
     }
 
     const PUBLISHER_PROFILE_ID = await lensHub.getProfileIdByHandle('publisher')
+    const FOLLOWER_PROFILE_ID = await lensHub.getProfileIdByHandle('follower')
     console.log(
         `@publisher profileId ${PUBLISHER_PROFILE_ID}`
     )
     console.log(
-        `@follower profileId ${await lensHub.getProfileIdByHandle('follower')}`
+        `@follower profileId ${FOLLOWER_PROFILE_ID}`
+    )
+
+
+    // Create follows.
+    console.log('Creating follows')
+    await waitForTx(
+        lensHub.follow(
+            [PUBLISHER_PROFILE_ID],
+            [FOLLOWER_PROFILE_ID],
+            [[]]
+        )
     )
 
 
@@ -126,6 +138,5 @@ task('setup-mock-env', 'setup a mock environment with data').setAction(async ({ 
     await feed.postToFeed(post1)
     await feed.postToFeed(post1)
     await feed.postToFeed(post1)
-
 
 });
