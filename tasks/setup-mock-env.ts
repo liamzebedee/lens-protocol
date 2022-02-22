@@ -78,16 +78,6 @@ task('setup-mock-env', 'setup a mock environment with data').setAction(async ({ 
     )
 
 
-    // Create follows.
-    console.log('Creating follows')
-    await waitForTx(
-        lensHub.follow(
-            [PUBLISHER_PROFILE_ID],
-            [FOLLOWER_PROFILE_ID],
-            [[]]
-        )
-    )
-
 
     // Create the "#announcements" feed.
     // 
@@ -109,6 +99,8 @@ task('setup-mock-env', 'setup a mock environment with data').setAction(async ({ 
     console.log(`Feed profileId: ${await feed.getFeedProfile(FEED_ID)}`)
 
 
+
+
     // Add authors to the feed.
     console.log('Adding authors to feeds')
     await waitForTx(
@@ -118,7 +110,27 @@ task('setup-mock-env', 'setup a mock environment with data').setAction(async ({ 
             true
         )
     )
-        
+
+
+
+    // Create follows.
+    console.log('Creating follows')
+    await waitForTx(
+        lensHub.follow(
+            [PUBLISHER_PROFILE_ID],
+            [FOLLOWER_PROFILE_ID],
+            [[]]
+        )
+    )
+    await waitForTx(
+        lensHub.follow(
+            [FOLLOWER_PROFILE_ID],
+            [FEED_ID],
+            [[]]
+        )
+    )
+
+
     // Create a post within #announcements.
     // 
     

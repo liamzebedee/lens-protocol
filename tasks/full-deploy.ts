@@ -311,7 +311,8 @@ task('full-deploy', 'deploys the entire Lens Protocol').setAction(async ({}, hre
     'Feed': {
       instance: feed,
       address: feed.address,
-      abi: Feed__factory.abi,
+      abi: Feed__factory.abi
+      ,
       bytecode: Feed__factory.bytecode
     }
   }
