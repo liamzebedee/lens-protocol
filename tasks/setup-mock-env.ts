@@ -3,6 +3,8 @@ import { Events__factory, Feed__factory, LensHub__factory } from '../typechain-t
 import { CreateFeedDataStruct } from '../typechain-types/Feed';
 import { CreateProfileDataStruct } from '../typechain-types/LensHub';
 import { ProtocolState, waitForTx, initEnv, getAddrs, ZERO_ADDRESS } from './helpers/utils';
+import { uploadToIpfs } from '../helpers/ipfs'
+
 
 task('setup-mock-env', 'setup a mock environment with data').setAction(async ({ }, hre) => {
     const [governance, , user] = await initEnv(hre);
@@ -14,10 +16,10 @@ task('setup-mock-env', 'setup a mock environment with data').setAction(async ({ 
     await waitForTx(lensHub.setState(ProtocolState.Unpaused));
 
     // Events are emitted from the proxy contract.
-    // const Events = Events__factory.connect(addrs['lensHub proxy'], user)
-    // Events.on(Events.filters.PostCreated(), (ev) => {
-    //     console.log(`PostCreated`, ev)
-    // })
+    const Events = Events__factory.connect(addrs['lensHub proxy'], user)
+    Events.on(Events.filters.PostCreated(), function() {
+        console.log(`PostCreated`, arguments)
+    })
     // Events.on(Events.filters.ProfileCreated(), (ev) => {
     //     console.log(`ProfileCreated`, ev)
     // })
@@ -136,10 +138,15 @@ task('setup-mock-env', 'setup a mock environment with data').setAction(async ({ 
     // 
     
     console.log('Adding posts to feeds')
+    
+    console.log('Uploading post to IPFS')
+    const upload = await uploadToIpfs("Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.")
+    console.log(`Uploaded: ${upload.cid}`)
+
     const post1 = {
         feedId: FEED_ID,
         authorProfileId: PUBLISHER_PROFILE_ID,
-        contentURI: "",
+        contentURI: `ipfs:${upload.cid}`,
 
         // TODO: Future design decisions about these variables.
         collectModule: addrs['empty collect module'],
@@ -149,7 +156,7 @@ task('setup-mock-env', 'setup a mock environment with data').setAction(async ({ 
     }
 
     await feed.postToFeed(post1)
-    await feed.postToFeed(post1)
-    await feed.postToFeed(post1)
+    // await feed.postToFeed(post1)
+    // await feed.postToFeed(post1)
 
 });
