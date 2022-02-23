@@ -95,8 +95,9 @@ contract Feed {
         createProfileData.followModuleData = vars.followModuleData;
         createProfileData.followNFTURI = vars.followNFTURI;
 
-        lensHub.createProfile(createProfileData);
-        uint256 profileId = lensHub.getProfileIdByHandle(createProfileData.handle);
+        uint256 profileId = lensHub.createProfile(createProfileData);
+        // lensHub.createProfile(createProfileData);
+        // uint256 profileId = lensHub.getProfileIdByHandle(createProfileData.handle);
         
         // Now store it in the feed.
         _feedIdToFeed[feedId].owner = vars.owner;
@@ -106,6 +107,11 @@ contract Feed {
         emit FeedCreated(feedId, profileId, vars.owner);
 
         return feedId;
+    }
+
+    function getFeedData(uint256 feedId) public view returns (string memory name, address owner) {
+        FeedStruct storage feed = _feedIdToFeed[feedId];
+        return (feed.name, feed.owner);
     }
 
     function getFeedProfile(uint256 feedId) public view returns (uint256) {
@@ -136,6 +142,7 @@ contract Feed {
         lensHub.post(postData);
 
         emit PostToFeedCreated(
+            // vars.feedId,
             vars.authorProfileId,
             feed.profileId,
             pubId,
@@ -210,6 +217,7 @@ contract Feed {
     );
     
     event PostToFeedCreated(
+        // uint256 indexed feedId,
         uint256 indexed authorProfileId,
         uint256 indexed profileId,
         uint256 indexed pubId,

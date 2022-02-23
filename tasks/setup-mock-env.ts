@@ -90,13 +90,14 @@ task('setup-mock-env', 'setup a mock environment with data').setAction(async ({ 
         followModuleData: [],
         followNFTURI: ""
     }
-    const FEED_ID = await feed.getFeedCount()
     await waitForTx(
         feed.createFeed(createFeedVars)
     )
+    const FEED_ID = (await feed.getFeedCount()).sub(1)
+    const FEED_PROFILE_ID = await feed.getFeedProfile(FEED_ID)
 
-    console.log(`Feed id: ${await feed.getFeedCount()}`)
-    console.log(`Feed profileId: ${await feed.getFeedProfile(FEED_ID)}`)
+    console.log(`Feed id: ${FEED_ID}`)
+    console.log(`Feed profileId: ${FEED_PROFILE_ID}`)
 
 
 
@@ -124,8 +125,8 @@ task('setup-mock-env', 'setup a mock environment with data').setAction(async ({ 
     )
     await waitForTx(
         lensHub.follow(
+            [FEED_PROFILE_ID],
             [FOLLOWER_PROFILE_ID],
-            [FEED_ID],
             [[]]
         )
     )
