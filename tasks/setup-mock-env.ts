@@ -32,6 +32,10 @@ task('setup-mock-env', 'setup a mock environment with data').setAction(async ({ 
     await waitForTx(
         lensHub.whitelistProfileCreator(feed.address, true)
     );
+    // Metamask
+    await waitForTx(
+        lensHub.whitelistProfileCreator('0xc783df8a850f42e7F7e57013759C285caa701eB6', true)
+    )
 
     lensHub = lensHub.connect(user)
 

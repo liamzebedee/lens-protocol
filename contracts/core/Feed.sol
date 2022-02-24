@@ -142,7 +142,7 @@ contract Feed {
         lensHub.post(postData);
 
         emit PostToFeedCreated(
-            // vars.feedId,
+            vars.feedId,
             vars.authorProfileId,
             feed.profileId,
             pubId,
@@ -217,10 +217,10 @@ contract Feed {
     );
     
     event PostToFeedCreated(
-        // uint256 indexed feedId,
+        uint256 indexed feedId,
         uint256 indexed authorProfileId,
         uint256 indexed profileId,
-        uint256 indexed pubId,
+        uint256 pubId,
         uint256 timestamp
     );
 }
