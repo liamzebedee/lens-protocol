@@ -1,5 +1,5 @@
 import { task } from 'hardhat/config';
-import { Events__factory, Feed__factory, LensHub__factory } from '../typechain-types';
+import { Events__factory, Feed__factory, FollowGraph__factory, FollowNFT__factory, LensHub__factory } from '../typechain-types';
 import { CreateFeedDataStruct } from '../typechain-types/Feed';
 import { CreateProfileDataStruct } from '../typechain-types/LensHub';
 import { ProtocolState, waitForTx, initEnv, getAddrs, ZERO_ADDRESS } from './helpers/utils';
@@ -7,10 +7,17 @@ import { uploadToIpfs } from '../helpers/ipfs'
 
 
 task('setup-mock-env', 'setup a mock environment with data').setAction(async ({ }, hre) => {
+    console.log(hre.network.name)
+    if(hre.network.name == "hardhat") {
+        console.error("Error: the in-built Hardhat environment contains no Lens deployment. You probably want '--network localhost' instead.")
+        return
+    }
+
     const [governance, , user] = await initEnv(hre);
     const addrs = getAddrs();
     let lensHub = LensHub__factory.connect(addrs['lensHub proxy'], governance);
     const feed = Feed__factory.connect(addrs['feed'], user);
+    const followGraph = FollowGraph__factory.connect(addrs['follow graph'], user)
     
     console.log('Unpausing protocol')
     await waitForTx(lensHub.setState(ProtocolState.Unpaused));
@@ -123,16 +130,16 @@ task('setup-mock-env', 'setup a mock environment with data').setAction(async ({ 
     // Create follows.
     console.log('Creating follows')
     await waitForTx(
-        lensHub.follow(
+        followGraph.follow(
             [PUBLISHER_PROFILE_ID],
-            [FOLLOWER_PROFILE_ID],
+            FOLLOWER_PROFILE_ID,
             [[]]
         )
     )
     await waitForTx(
-        lensHub.follow(
+        followGraph.follow(
             [FEED_PROFILE_ID],
-            [FOLLOWER_PROFILE_ID],
+            FOLLOWER_PROFILE_ID,
             [[]]
         )
     )

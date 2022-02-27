@@ -42,7 +42,7 @@ contract FollowGraph {
         _validateCallerIsProfileOwnerOrDispatcher(fromProfileId);
         // We don't burn the follow NFT on purpose.
         for(uint256 i = 0; i < profileIds.length; i++) {
-            emit FollowEdgeChanged(fromProfileId, profileIds[i], true);
+            emit FollowEdgeChanged(fromProfileId, profileIds[i], false);
         }
     }
 

@@ -263,6 +263,7 @@ task('full-deploy', 'deploys the entire Lens Protocol').setAction(async ({}, hre
     'approval follow module': approvalFollowModule.address,
     'follower only reference module': followerOnlyReferenceModule.address,
     'feed': feed.address,
+    'follow graph': followGraph.address,
   };
   const json = JSON.stringify(addrs, null, 2);
   console.log(json);
