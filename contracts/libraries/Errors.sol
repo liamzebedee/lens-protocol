@@ -38,7 +38,6 @@ library Errors {
     error FollowNotApproved();
     error MintLimitExceeded();
     error CollectNotAllowed();
-    error ProfilePermissionDenied();
 
     // MultiState Errors
     error Paused();
