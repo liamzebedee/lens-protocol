@@ -3,8 +3,6 @@
 pragma solidity 0.8.10;
 
 import {Errors} from '../libraries/Errors.sol';
-import {DataTypes} from '../libraries/DataTypes.sol';
-import {Events} from "../libraries/Events.sol";
 import {LensHub} from "./LensHub.sol";
 
 /**
@@ -26,6 +24,10 @@ contract FollowGraph {
         uint256 fromProfileId,
         bytes[] calldata datas
     ) public {
+        // We can save on verifying caller is fromProfileId, since it is
+        // checked inside LensHub.
+        // _validateCallerIsProfileOwnerOrDispatcher(fromProfileId);
+
         for(uint256 i = 0; i < profileIds.length; i++) {
             emit FollowEdgeChanged(fromProfileId, profileIds[i], true);
         }
@@ -37,10 +39,17 @@ contract FollowGraph {
         uint256[] calldata profileIds,
         uint256 fromProfileId
     ) public {
+        _validateCallerIsProfileOwnerOrDispatcher(fromProfileId);
         // We don't burn the follow NFT on purpose.
         for(uint256 i = 0; i < profileIds.length; i++) {
             emit FollowEdgeChanged(fromProfileId, profileIds[i], true);
         }
+    }
+
+    function _validateCallerIsProfileOwnerOrDispatcher(uint256 profileId) internal view {
+        address dispatcher = lensHub.getDispatcher(profileId);
+        if (msg.sender != lensHub.ownerOf(profileId) && msg.sender != dispatcher)
+            revert Errors.NotProfileOwnerOrDispatcher();
     }
 
     /**
