@@ -2,10 +2,12 @@
 
 pragma solidity 0.8.10;
 
-import {Errors} from '../libraries/Errors.sol';
 import {DataTypes} from '../libraries/DataTypes.sol';
-import {Events} from "../libraries/Events.sol";
 import {LensHub} from "./LensHub.sol";
+
+library Errors {
+    error ProfilePermissionDenied();
+}
 
 /**
  * A Feed object in the Lens open social graph.
@@ -80,15 +82,6 @@ contract Feed {
         createProfileData.handle = string(abi.encodePacked(
             "annonce.feed.",
             _toString(feedId)
-            // keccak256(
-            //     "annonce_feed_",
-            //     feedId,
-            //     "_",
-            //     abi.encodePacked(
-            //         blockhash(block.number), 
-            //         tx.origin
-            //     )
-            // )
         ));
         createProfileData.imageURI = vars.imageURI;
         createProfileData.followModule = vars.followModule;
