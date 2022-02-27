@@ -23,6 +23,7 @@ import {
   TransparentUpgradeableProxy__factory,
   Feed__factory,
   Events__factory,
+  FollowGraph__factory,
 } from '../typechain-types';
 import { Events } from '../typechain-types';
 import { deployContract, waitForTx } from './helpers/utils';
@@ -126,6 +127,12 @@ task('full-deploy', 'deploys the entire Lens Protocol').setAction(async ({}, hre
   console.log('\n\t-- Deploying Feed --');
   const feed = await deployContract(
     new Feed__factory(deployer).deploy(lensHub.address, { nonce: deployerNonce++ })
+  );
+
+  // Follow Graph.
+  console.log('\n\t-- Deploying FollowGraph --');
+  const followGraph = await deployContract(
+    new FollowGraph__factory(deployer).deploy(lensHub.address, { nonce: deployerNonce++ })
   );
 
   // Deploy collect modules
@@ -307,6 +314,13 @@ task('full-deploy', 'deploys the entire Lens Protocol').setAction(async ({}, hre
       address: null,
       abi: FollowNFT__factory.abi,
       bytecode: null
+    },
+    'FollowGraph': {
+      instance: followGraph,
+      address: followGraph.address,
+      abi: FollowGraph__factory.abi
+      ,
+      bytecode: FollowGraph__factory.bytecode
     },
     'Feed': {
       instance: feed,
