@@ -39,6 +39,7 @@ contract Feed {
     struct CreateFeedData {
         address owner;
         string name;
+        string profileHandle;
         string imageURI;
         address followModule;
         bytes followModuleData;
@@ -79,10 +80,14 @@ contract Feed {
         //    of whatever scheme we design.
         // 2) `feedId` could be encoded as a string.
         // Sooooo, this is the hack workaround.
-        createProfileData.handle = string(abi.encodePacked(
-            "annonce.feed.",
-            _toString(feedId)
-        ));
+        // if(true) {
+        //     // Default profile handle.
+        //     createProfileData.handle = string(abi.encodePacked(
+        //         "anno.feed.",
+        //         _toString(feedId)
+        //     ));
+        // }
+        createProfileData.handle = vars.profileHandle;
         createProfileData.imageURI = vars.imageURI;
         createProfileData.followModule = vars.followModule;
         createProfileData.followModuleData = vars.followModuleData;
