@@ -97,7 +97,7 @@ task('setup-mock-env', 'setup a mock environment with data').setAction(async ({ 
     console.log('Creating feeds')
     const createFeedVars: CreateFeedDataStruct = {
         name: "announcements",
-        profileHandle: "announcements."+(Date.now().toString().substring(0,8)),
+        profileHandle: "announcements."+(Date.now().toString().substring(-8,0)),
         owner: user.address,
         imageURI: "",
         followModule: ZERO_ADDRESS,
