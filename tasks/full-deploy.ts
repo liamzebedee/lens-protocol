@@ -285,9 +285,18 @@ task('full-deploy', 'deploys the entire Lens Protocol').setAction(async ({}, hre
   }
   
   
-  const deploymentFilePath = join(__dirname, `../../deployments/${hre.network.name}.json`)
-  const deployments = require(deploymentFilePath)
-  console.debug(`Saving deployment info to ${deploymentFilePath}`)
+  const deploymentFolderPath = join(__dirname, `../../deployments/${hre.network.name}/`)
+  if (!fs.existsSync(deploymentFolderPath)) fs.mkdirSync(deploymentFolderPath)
+
+  const deploymentFilePath = join(deploymentFolderPath, '/anno.json')
+  let deployments = {
+    contracts: {}
+  }
+  if (fs.existsSync(deploymentFilePath)) {
+    deployments = require(deploymentFilePath)
+  }
+  console.debug(`Saving deployment info to ${deploymentFolderPath}`)
+
   const deployedContracts = {
     'LensHub': {
       instance: lensHubImpl,
@@ -342,6 +351,10 @@ task('full-deploy', 'deploys the entire Lens Protocol').setAction(async ({}, hre
       bytecode
     };
   });
+
+  // Now add contracts with only addresses.
+  fs.writeFileSync(join(deploymentFolderPath, '/lens-addresses.json'), json, 'utf-8');
+
   // Save contract addresses.
   fs.writeFileSync(deploymentFilePath, JSON.stringify(deployments, null, 4));
 });
