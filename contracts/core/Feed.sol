@@ -93,9 +93,9 @@ contract Feed {
         createProfileData.followModuleData = vars.followModuleData;
         createProfileData.followNFTURI = vars.followNFTURI;
 
-        uint256 profileId = lensHub.createProfile(createProfileData);
-        // lensHub.createProfile(createProfileData);
-        // uint256 profileId = lensHub.getProfileIdByHandle(createProfileData.handle);
+        // uint256 profileId = lensHub.createProfile(createProfileData);
+        lensHub.createProfile(createProfileData);
+        uint256 profileId = lensHub.getProfileIdByHandle(createProfileData.handle);
         
         // Now store it in the feed.
         _feedIdToFeed[feedId].owner = vars.owner;
@@ -160,9 +160,8 @@ contract Feed {
     ) public {
         _onlyOwner(feedId);
         FeedStruct storage feed = _feedIdToFeed[feedId];
-        feed.permissions[profileId].createPost = createPost;
-
-        emit FeedProfilePermissionsSet(
+        _setProfilePermissions(
+            feed,
             feedId,
             profileId,
             createPost
@@ -173,6 +172,24 @@ contract Feed {
         return _feedCount;
     }
 
+    // 
+    // INTERNAL.
+    // 
+
+    function _setProfilePermissions(
+        FeedStruct storage feed,
+        uint256 feedId,
+        uint256 profileId,
+        bool createPost
+    ) internal {
+        feed.permissions[profileId].createPost = createPost;
+
+        emit FeedProfilePermissionsSet(
+            feedId,
+            profileId,
+            createPost
+        );
+    } 
 
     // 
     // 
