@@ -55,7 +55,7 @@ task('sync-deployments', 'syncs vendored deployments with our custom format').se
     // Update deployments.
     await Promise.all(
         Object.entries(vendoredContracts).map(async ([name, contract]) => {
-            ctx.deployments["contracts"][name] = await transformVendoredInstance(ctx, { name, ...contract })
+            ctx.deployments["contracts"][name] = await transformVendoredInstance(ctx, { name, ...contract, force: true })
         })
     )
 

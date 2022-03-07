@@ -26,7 +26,8 @@ export interface DeploymentContext {
     deploymentsDir: string
     deploymentFilePath: string
     deployments: Deployments
-    provider: ethers.providers.Provider
+    provider: ethers.providers.Provider,
+    getAddress: Function
 }
 
 export function loadDeploymentCtx({ network, project, provider }: { network: string, project: string, provider: ethers.providers.Provider }): DeploymentContext {
@@ -41,11 +42,18 @@ export function loadDeploymentCtx({ network, project, provider }: { network: str
         deployments = require(deploymentFilePath)
     }
 
+    const getAddress = (name: string) => {
+        const contract = deployments.contracts[name]
+        if(!contract) throw new Error(`Deployment for ${name} not found`)
+        return contract.address
+    }
+
     return {
         deploymentsDir: deploymentFolderPath,
         deploymentFilePath: deploymentFilePath,
         deployments,
-        provider
+        provider,
+        getAddress
     }
 }
 
@@ -84,13 +92,14 @@ export async function transformEthersInstance(ctx: DeploymentContext, args: { na
 }
 
 
-export async function transformVendoredInstance(ctx: DeploymentContext, args: { name: string, address: string, txHash: string, abi: object[] }): Promise<ContractDeployment> {
+export async function transformVendoredInstance(ctx: DeploymentContext, args: { name: string, address: string, txHash: string, abi: object[], force: boolean }): Promise<ContractDeployment> {
     const { address, abi, txHash, name } = args
 
     const deployment = ctx.deployments.contracts[name]
     let deployTransaction = deployment?.deployTransaction
-
-    if (!(deployment || deployTransaction) && txHash) {
+    const needsRefresh = !deployTransaction && txHash
+    
+    if (needsRefresh || args.force) {
         console.log(`Missing deployment info for contract ${name}. Fetching from tx ${txHash}...`)
         const receipt = await ctx.provider.getTransactionReceipt(txHash)
         deployTransaction = {
