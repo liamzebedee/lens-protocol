@@ -26,7 +26,7 @@ import {
   FollowGraph__factory,
 } from '../typechain-types';
 import { Events } from '../typechain-types';
-import { deployContract, waitForTx } from './helpers/utils';
+import { deployContract, waitForTx, ZERO_ADDRESS } from './helpers/utils';
 
 const TREASURY_FEE_BPS = 50;
 const LENS_HUB_NFT_NAME = 'Various Vegetables';
@@ -125,9 +125,23 @@ task('full-deploy', 'deploys the entire Lens Protocol').setAction(async ({}, hre
 
   // Feed
   console.log('\n\t-- Deploying Feed --');
-  const feed = await deployContract(
-    new Feed__factory(deployer).deploy(lensHub.address, { nonce: deployerNonce++ })
+  const MockProfileCreationProxy_address = '0x08C4fdC3BfF03ce4E284FBFE61ba820c23722540'
+  const feedImpl = await deployContract(
+    new Feed__factory(deployer).deploy({ nonce: deployerNonce++ })
   );
+  const feedProxy = await deployContract(
+    new TransparentUpgradeableProxy__factory(deployer).deploy(
+      feedImpl.address,
+      accounts[3].address,
+      [],
+      { nonce: deployerNonce++ }
+    )
+  );
+  const feed = Feed__factory.connect(feedProxy.address, governance);
+
+  await waitForTx(
+    feed.initialize(lensHub.address, MockProfileCreationProxy_address)
+  )
 
   // Follow Graph.
   console.log('\n\t-- Deploying FollowGraph --');
@@ -246,7 +260,7 @@ task('full-deploy', 'deploys the entire Lens Protocol').setAction(async ({}, hre
   // Save and log the addresses
   const addrs = {
     'lensHub proxy': lensHub.address,
-    'lensHub impl:': lensHubImpl.address,
+    'lensHub impl': lensHubImpl.address,
     'publishing logic lib': publishingLogic.address,
     'interaction logic lib': interactionLogic.address,
     'follow NFT impl': followNFTImplAddress,
@@ -263,6 +277,8 @@ task('full-deploy', 'deploys the entire Lens Protocol').setAction(async ({}, hre
     'approval follow module': approvalFollowModule.address,
     'follower only reference module': followerOnlyReferenceModule.address,
     'feed': feed.address,
+    'feed impl': feedImpl.address,
+    'feed proxy': feedProxy.address,
     'follow graph': followGraph.address,
   };
   const json = JSON.stringify(addrs, null, 2);
@@ -334,7 +350,14 @@ task('full-deploy', 'deploys the entire Lens Protocol').setAction(async ({}, hre
     },
     'Feed': {
       instance: feed,
-      address: feed.address,
+      address: feedImpl.address,
+      abi: Feed__factory.abi
+      ,
+      bytecode: Feed__factory.bytecode
+    },
+    'FeedProxy': {
+      instance: feedProxy,
+      address: feedProxy.address,
       abi: Feed__factory.abi
       ,
       bytecode: Feed__factory.bytecode

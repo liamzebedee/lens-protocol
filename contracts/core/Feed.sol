@@ -59,13 +59,27 @@ contract Feed {
     }
 
     LensHub public lensHub;
+    LensHub public mockProfileCreationProxy;
 
     mapping(uint256 => FeedStruct) public _feedIdToFeed;
     
     uint256 internal _feedCount;
 
-    constructor(address _lensHub) public payable {
+    // Internal.
+    address private admin;
+
+    modifier onlyAdmin() {
+        if(admin != address(0)) require(msg.sender == admin, "not admin");
+        _;
+    }
+
+    function initialize(
+        address _lensHub, 
+        address _mockProfileCreationProxy
+    ) external payable onlyAdmin {
+        admin = msg.sender;
         lensHub = LensHub(_lensHub);
+        mockProfileCreationProxy = LensHub(_mockProfileCreationProxy);
     }
 
     function createFeed(CreateFeedData calldata vars) external returns (uint256 feedId) {
@@ -75,18 +89,6 @@ contract Feed {
         // Create a profile.
         DataTypes.CreateProfileData memory createProfileData;
         createProfileData.to = address(this);
-        // TODO: Handle is ugly.
-        // 1) There's no way we can create a reasonable feedId, since anyone can claim the ID
-        //    of whatever scheme we design.
-        // 2) `feedId` could be encoded as a string.
-        // Sooooo, this is the hack workaround.
-        // if(true) {
-        //     // Default profile handle.
-        //     createProfileData.handle = string(abi.encodePacked(
-        //         "anno.feed.",
-        //         _toString(feedId)
-        //     ));
-        // }
         createProfileData.handle = vars.profileHandle;
         createProfileData.imageURI = vars.imageURI;
         createProfileData.followModule = vars.followModule;
@@ -94,7 +96,13 @@ contract Feed {
         createProfileData.followNFTURI = vars.followNFTURI;
 
         // uint256 profileId = lensHub.createProfile(createProfileData);
-        lensHub.createProfile(createProfileData);
+        // TODO: remove after Lens mainnet.
+        if (address(mockProfileCreationProxy) != address(0)) {
+            mockProfileCreationProxy.createProfile(createProfileData);
+        } else {
+            lensHub.createProfile(createProfileData);
+        }
+        
         uint256 profileId = lensHub.getProfileIdByHandle(createProfileData.handle);
         
         // Now store it in the feed.

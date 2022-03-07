@@ -16,7 +16,7 @@ task('setup-mock-env', 'setup a mock environment with data').setAction(async ({ 
     const [governance, , user] = await initEnv(hre);
     const addrs = getAddrs();
     let lensHub = LensHub__factory.connect(addrs['lensHub proxy'], governance);
-    const feed = Feed__factory.connect(addrs['feed'], user);
+    const feed = Feed__factory.connect(addrs['feed proxy'], user);
     const followGraph = FollowGraph__factory.connect(addrs['follow graph'], user)
     
     console.log('Unpausing protocol')
@@ -38,6 +38,9 @@ task('setup-mock-env', 'setup a mock environment with data').setAction(async ({ 
     );
     await waitForTx(
         lensHub.whitelistProfileCreator(feed.address, true)
+    );
+    await waitForTx(
+        lensHub.whitelistProfileCreator(addrs['feed impl'], true)
     );
     // Metamask
     await waitForTx(

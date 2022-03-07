@@ -144,7 +144,6 @@ contract LensHub is ILensHub, LensNFTBase, VersionedInitializable, LensMultiStat
         override
         whenNotPaused
         onlyWhitelistedProfileCreator
-        returns (uint256)
     {
         uint256 profileId = ++_profileCounter;
         _mint(vars.to, profileId);
@@ -155,7 +154,6 @@ contract LensHub is ILensHub, LensNFTBase, VersionedInitializable, LensMultiStat
             _profileById,
             _followModuleWhitelisted
         );
-        return profileId;
     }
 
     /// @inheritdoc ILensHub
