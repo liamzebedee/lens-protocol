@@ -123,32 +123,6 @@ task('full-deploy', 'deploys the entire Lens Protocol').setAction(async ({}, hre
     new Currency__factory(deployer).deploy({ nonce: deployerNonce++ })
   );
 
-  // Feed
-  console.log('\n\t-- Deploying Feed --');
-  const MockProfileCreationProxy_address = '0x08C4fdC3BfF03ce4E284FBFE61ba820c23722540'
-  const feedImpl = await deployContract(
-    new Feed__factory(deployer).deploy({ nonce: deployerNonce++ })
-  );
-  const feedProxy = await deployContract(
-    new TransparentUpgradeableProxy__factory(deployer).deploy(
-      feedImpl.address,
-      accounts[3].address,
-      [],
-      { nonce: deployerNonce++ }
-    )
-  );
-  const feed = Feed__factory.connect(feedProxy.address, governance);
-
-  await waitForTx(
-    feed.initialize(lensHub.address, MockProfileCreationProxy_address)
-  )
-
-  // Follow Graph.
-  console.log('\n\t-- Deploying FollowGraph --');
-  const followGraph = await deployContract(
-    new FollowGraph__factory(deployer).deploy(lensHub.address, { nonce: deployerNonce++ })
-  );
-
   // Deploy collect modules
   console.log('\n\t-- Deploying feeCollectModule --');
   const feeCollectModule = await deployContract(
@@ -275,109 +249,32 @@ task('full-deploy', 'deploys the entire Lens Protocol').setAction(async ({}, hre
     'empty collect module': emptyCollectModule.address,
     'fee follow module': feeFollowModule.address,
     'approval follow module': approvalFollowModule.address,
-    'follower only reference module': followerOnlyReferenceModule.address,
-    'feed': feed.address,
-    'feed impl': feedImpl.address,
-    'feed proxy': feedProxy.address,
-    'follow graph': followGraph.address,
+    'follower only reference module': followerOnlyReferenceModule.address
   };
   const json = JSON.stringify(addrs, null, 2);
-  console.log(json);
 
   fs.writeFileSync('addresses.json', json, 'utf-8');
 
 
-
-
-  // Now save to deployments.json.
-  
-  type ABIItem = any
-  type DeploymentItem = {
-    address: string,
-    deployTransaction: {
-      blockNumber: number
-    },
-    abi: ABIItem[]
-  }
-  
-  
   const deploymentFolderPath = join(__dirname, `../../deployments/${hre.network.name}/`)
   if (!fs.existsSync(deploymentFolderPath)) fs.mkdirSync(deploymentFolderPath)
-
-  const deploymentFilePath = join(deploymentFolderPath, '/anno.json')
-  let deployments = {
-    contracts: {}
+  const deployments = Object.entries(addrs)
+    .map(([k, v]) => ({ [k]: { address: v, txHash: "" } }))
+    .reduce((x, a) => Object.assign(a, x))
+  
+  deployments['lensHub proxy'] = {
+    address: lensHub.address,
+    txHash: lensHubImpl.deployTransaction.hash,
   }
-  if (fs.existsSync(deploymentFilePath)) {
-    deployments = require(deploymentFilePath)
-  }
-  console.debug(`Saving deployment info to ${deploymentFolderPath}`)
-
-  const deployedContracts = {
-    'LensHub': {
-      instance: lensHubImpl,
-      address: lensHubImpl.address,
-      abi: LensHub__factory.abi
-        .concat(PublishingLogic__factory.abi)
-        .concat(InteractionLogic__factory.abi)
-        .concat(Events__factory.abi)
-        ,
-      bytecode: LensHub__factory.bytecode
-    },
-    'LensHubProxy': {
-      // TODO: workaround to get the `deployTransaction`.
-      instance: lensHubImpl,
-      address: lensHub.address,
-      abi: LensHub__factory.abi
-        .concat(PublishingLogic__factory.abi)
-        .concat(InteractionLogic__factory.abi)
-        .concat(Events__factory.abi)
-      ,
-      bytecode: LensHub__factory.bytecode
-    },
-    'FollowNFT': {
-      instance: null,
-      address: null,
-      abi: FollowNFT__factory.abi,
-      bytecode: null
-    },
-    'FollowGraph': {
-      instance: followGraph,
-      address: followGraph.address,
-      abi: FollowGraph__factory.abi
-      ,
-      bytecode: FollowGraph__factory.bytecode
-    },
-    'Feed': {
-      instance: feed,
-      address: feedImpl.address,
-      abi: Feed__factory.abi
-      ,
-      bytecode: Feed__factory.bytecode
-    },
-    'FeedProxy': {
-      instance: feedProxy,
-      address: feedProxy.address,
-      abi: Feed__factory.abi
-      ,
-      bytecode: Feed__factory.bytecode
-    }
+  deployments['lensHub impl'] = {
+    address: lensHub.address,
+    txHash: lensHubImpl.deployTransaction.hash,
   }
 
-  // Update deployments.
-  Object.entries(deployedContracts).forEach(([name, contract]) => {
-    const { instance, address, abi, bytecode } = contract
-    deployments["contracts"][name] = {
-      address: address,
-      deployTransaction: instance?.deployTransaction,
-      abi,
-      bytecode
-    };
-  });
-
-  // Now add contracts with only addresses.
-  fs.writeFileSync(join(deploymentFolderPath, '/lens-addresses.json'), json, 'utf-8');
-
-  // Save contract addresses.
-  fs.writeFileSync(deploymentFilePath, JSON.stringify(deployments, null, 4));
+  let json2 = JSON.stringify(
+    deployments,
+    null,
+    4
+  )
+  fs.writeFileSync(join(deploymentFolderPath, '/lens-addresses.json'), json2, 'utf-8');
 });
