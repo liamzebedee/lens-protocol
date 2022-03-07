@@ -9,6 +9,10 @@ library Errors {
     error ProfilePermissionDenied();
 }
 
+interface MockProfileCreationProxy {
+    function proxyCreateProfile(DataTypes.CreateProfileData calldata vars) external;
+}
+
 /**
  * A Feed object in the Lens open social graph.
  * 
@@ -59,7 +63,7 @@ contract Feed {
     }
 
     LensHub public lensHub;
-    LensHub public mockProfileCreationProxy;
+    MockProfileCreationProxy public mockProfileCreationProxy;
 
     mapping(uint256 => FeedStruct) public _feedIdToFeed;
     
@@ -79,7 +83,7 @@ contract Feed {
     ) external payable onlyAdmin {
         admin = msg.sender;
         lensHub = LensHub(_lensHub);
-        mockProfileCreationProxy = LensHub(_mockProfileCreationProxy);
+        mockProfileCreationProxy = MockProfileCreationProxy(_mockProfileCreationProxy);
     }
 
     function createFeed(CreateFeedData calldata vars) external returns (uint256 feedId) {
@@ -98,7 +102,7 @@ contract Feed {
         // uint256 profileId = lensHub.createProfile(createProfileData);
         // TODO: remove after Lens mainnet.
         if (address(mockProfileCreationProxy) != address(0)) {
-            mockProfileCreationProxy.createProfile(createProfileData);
+            mockProfileCreationProxy.proxyCreateProfile(createProfileData);
         } else {
             lensHub.createProfile(createProfileData);
         }
