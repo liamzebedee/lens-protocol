@@ -30,6 +30,28 @@ export interface DeploymentContext {
     getAddress: Function
 }
 
+export function loadLensDeployment(network: string) {
+    const deploymentFolderPath = join(__dirname, `../../../deployments/${network}/`)
+    if (!fs.existsSync(deploymentFolderPath)) fs.mkdirSync(deploymentFolderPath)
+
+    const deploymentFilePath = join(deploymentFolderPath, `/lens-addresses.json`)
+
+    const deployments = require(deploymentFilePath)
+
+    const getAddress = (name: string) => {
+        const contract = deployments[name]
+        if (!contract) throw new Error(`Deployment for ${name} not found`)
+        return contract.address
+    }
+
+    return {
+        deploymentsDir: deploymentFolderPath,
+        deploymentFilePath: deploymentFilePath,
+        deployments,
+        getAddress
+    }
+}
+
 export function loadDeploymentCtx({ network, project, provider }: { network: string, project: string, provider: ethers.providers.Provider }): DeploymentContext {
     const deploymentFolderPath = join(__dirname, `../../../deployments/${network}/`)
     if (!fs.existsSync(deploymentFolderPath)) fs.mkdirSync(deploymentFolderPath)

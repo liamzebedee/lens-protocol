@@ -9,7 +9,7 @@ import {
     TransparentUpgradeableProxy__factory
 } from '../typechain-types';
 import { loadDeploymentCtx, transformEthersInstance, transformVendoredInstance } from './helpers/deployments';
-import { deployContract, waitForTx } from './helpers/utils';
+import { deployContract, waitForTx, ZERO_ADDRESS } from './helpers/utils';
 
 task('deploy-anno', 'deploys the Anno Protocol contracts').setAction(async ({ }, hre) => {
     // Note that the use of these signers is a placeholder and is not meant to be used in
@@ -27,7 +27,6 @@ task('deploy-anno', 'deploys the Anno Protocol contracts').setAction(async ({ },
         provider: hre.ethers.provider
     })
     const lensAddresses = require(join(ctx.deploymentsDir, '/lens-addresses.json'));
-    console.log(lensAddresses)
 
 
     // Nonce management in case of deployment issues
@@ -35,7 +34,6 @@ task('deploy-anno', 'deploys the Anno Protocol contracts').setAction(async ({ },
 
     // Feed.
     console.log('\n\t-- Deploying Feed --');
-    const MockProfileCreationProxy_address = '0x08C4fdC3BfF03ce4E284FBFE61ba820c23722540'
     const feedImpl = await deployContract(
         new Feed__factory(deployer).deploy({ nonce: deployerNonce++ })
     );
@@ -52,6 +50,12 @@ task('deploy-anno', 'deploys the Anno Protocol contracts').setAction(async ({ },
 
     // Initialize Feed.
     const feed = Feed__factory.connect(feedProxy.address, governance);
+    
+    let MockProfileCreationProxy_address = ZERO_ADDRESS
+    if (hre.network.name == 'mumbai') {
+        MockProfileCreationProxy_address = '0x08C4fdC3BfF03ce4E284FBFE61ba820c23722540'
+    }
+    
     await waitForTx(
         feed.initialize(lensAddresses['lensHub proxy'].address, MockProfileCreationProxy_address)
     )

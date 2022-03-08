@@ -45,11 +45,12 @@ task('sync-deployments', 'syncs vendored deployments with our custom format').se
                 .concat(InteractionLogic__factory.abi)
                 .concat(Events__factory.abi)
         },
-        'FollowNFT': {
-            address: lensAddresses['follow NFT impl'].address,
-            txHash: lensAddresses['follow NFT impl'].txHash,
-            abi: FollowNFT__factory.abi,
-        },
+        // TODO: re-enable later.
+        // 'FollowNFT': {
+        //     address: lensAddresses['follow NFT impl'].address,
+        //     txHash: lensAddresses['follow NFT impl'].txHash,
+        //     abi: FollowNFT__factory.abi,
+        // },
     }
 
     // Update deployments.
