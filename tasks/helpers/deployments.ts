@@ -3,10 +3,19 @@ import { ethers } from 'ethers';
 import fs from 'fs';
 import { join } from 'path';
 
+// TODO: import this dynamically from somewhere
+const contracts = [
+    'LensHubImpl',
+    'LensHubProxy',
+    'FeedProxy',
+    'FollowGraph'
+] as const
+
+export type DeployedContractNames = typeof contracts[number];
+
 export interface Deployments {
-    contracts: {
-        [k: string]: ContractDeployment | undefined
-    }
+    // TODO: ContractDeployment may still be undefined? 
+    contracts: Record<DeployedContractNames, ContractDeployment>
 }
 
 export interface ContractDeployment {
@@ -30,13 +39,18 @@ export interface DeploymentContext {
     getAddress: Function
 }
 
+type LensDeployments = Record<string, {
+    address: string
+    txHash: string
+}>
+
 export function loadLensDeployment(network: string) {
     const deploymentFolderPath = join(__dirname, `../../../deployments/${network}/`)
     if (!fs.existsSync(deploymentFolderPath)) fs.mkdirSync(deploymentFolderPath)
 
     const deploymentFilePath = join(deploymentFolderPath, `/lens-addresses.json`)
 
-    const deployments = require(deploymentFilePath)
+    const deployments = require(deploymentFilePath) as LensDeployments
 
     const getAddress = (name: string) => {
         const contract = deployments[name]
@@ -59,12 +73,13 @@ export function loadDeploymentCtx({ network, project, provider }: { network: str
     const deploymentFilePath = join(deploymentFolderPath, `/${project}.json`)
     let deployments = {
         contracts: {}
-    }
+    } as Deployments
+
     if (fs.existsSync(deploymentFilePath)) {
         deployments = require(deploymentFilePath)
     }
 
-    const getAddress = (name: string) => {
+    const getAddress = (name: DeployedContractNames) => {
         const contract = deployments.contracts[name]
         if(!contract) throw new Error(`Deployment for ${name} not found`)
         return contract.address
@@ -73,7 +88,7 @@ export function loadDeploymentCtx({ network, project, provider }: { network: str
     return {
         deploymentsDir: deploymentFolderPath,
         deploymentFilePath: deploymentFilePath,
-        deployments,
+        deployments: deployments,
         provider,
         getAddress
     }
@@ -114,7 +129,7 @@ export async function transformEthersInstance(ctx: DeploymentContext, args: { na
 }
 
 
-export async function transformVendoredInstance(ctx: DeploymentContext, args: { name: string, address: string, txHash: string, abi: object[], force: boolean }): Promise<ContractDeployment> {
+export async function transformVendoredInstance(ctx: DeploymentContext, args: { name: DeployedContractNames, address: string, txHash: string, abi: object[], force: boolean }): Promise<ContractDeployment> {
     const { address, abi, txHash, name } = args
 
     const deployment = ctx.deployments.contracts[name]
