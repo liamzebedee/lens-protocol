@@ -67,7 +67,8 @@ export async function initEnv(hre: HardhatRuntimeEnvironment): Promise<SignerWit
   const accounts = await ethers.getSigners(); // This returns an array of the default signers connected to the hre's ethers instance
   const governance = accounts[1];
   const treasury = accounts[2];
-  const user = accounts[3];
+  const proxyAdmin = accounts[3];
+  const user = accounts[4];
 
   return [governance, treasury, user];
 }

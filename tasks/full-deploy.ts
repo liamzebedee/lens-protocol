@@ -2,6 +2,7 @@ import '@nomiclabs/hardhat-ethers';
 import { hexlify, keccak256, RLP } from 'ethers/lib/utils';
 import fs from 'fs';
 import { task } from 'hardhat/config';
+import { join } from 'path';
 import {
   LensHub__factory,
   ApprovalFollowModule__factory,
@@ -20,8 +21,12 @@ import {
   RevertCollectModule__factory,
   TimedFeeCollectModule__factory,
   TransparentUpgradeableProxy__factory,
+  Feed__factory,
+  Events__factory,
+  FollowGraph__factory,
 } from '../typechain-types';
-import { deployContract, waitForTx } from './helpers/utils';
+import { Events } from '../typechain-types';
+import { deployContract, waitForTx, ZERO_ADDRESS } from './helpers/utils';
 
 const TREASURY_FEE_BPS = 50;
 const LENS_HUB_NFT_NAME = 'Various Vegetables';
@@ -103,7 +108,7 @@ task('full-deploy', 'deploys the entire Lens Protocol').setAction(async ({}, hre
   let proxy = await deployContract(
     new TransparentUpgradeableProxy__factory(deployer).deploy(
       lensHubImpl.address,
-      deployer.address,
+      accounts[3].address,
       data,
       { nonce: deployerNonce++ }
     )
@@ -229,7 +234,7 @@ task('full-deploy', 'deploys the entire Lens Protocol').setAction(async ({}, hre
   // Save and log the addresses
   const addrs = {
     'lensHub proxy': lensHub.address,
-    'lensHub impl:': lensHubImpl.address,
+    'lensHub impl': lensHubImpl.address,
     'publishing logic lib': publishingLogic.address,
     'interaction logic lib': interactionLogic.address,
     'follow NFT impl': followNFTImplAddress,
@@ -244,10 +249,32 @@ task('full-deploy', 'deploys the entire Lens Protocol').setAction(async ({}, hre
     'empty collect module': emptyCollectModule.address,
     'fee follow module': feeFollowModule.address,
     'approval follow module': approvalFollowModule.address,
-    'follower only reference module': followerOnlyReferenceModule.address,
+    'follower only reference module': followerOnlyReferenceModule.address
   };
   const json = JSON.stringify(addrs, null, 2);
-  console.log(json);
 
   fs.writeFileSync('addresses.json', json, 'utf-8');
+
+
+  const deploymentFolderPath = join(__dirname, `../../deployments/${hre.network.name}/`)
+  if (!fs.existsSync(deploymentFolderPath)) fs.mkdirSync(deploymentFolderPath)
+  const deployments = Object.entries(addrs)
+    .map(([k, v]) => ({ [k]: { address: v, txHash: "" } }))
+    .reduce((x, a) => Object.assign(a, x))
+  
+  deployments['lensHub proxy'] = {
+    address: lensHub.address,
+    txHash: lensHubImpl.deployTransaction.hash,
+  }
+  deployments['lensHub impl'] = {
+    address: lensHub.address,
+    txHash: lensHubImpl.deployTransaction.hash,
+  }
+
+  let json2 = JSON.stringify(
+    deployments,
+    null,
+    4
+  )
+  fs.writeFileSync(join(deploymentFolderPath, '/lens-addresses.json'), json2, 'utf-8');
 });
