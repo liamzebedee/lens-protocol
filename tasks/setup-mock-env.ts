@@ -4,7 +4,7 @@ import { CreateFeedDataStruct } from '../typechain-types/Feed';
 import { CreateProfileDataStruct } from '../typechain-types/LensHub';
 import { ProtocolState, waitForTx, initEnv, getAddrs, ZERO_ADDRESS } from './helpers/utils';
 import { uploadToIpfs } from '../helpers/ipfs'
-import { loadDeploymentCtx, loadLensDeployment } from './helpers/deployments'  
+import { loadDeploymentCtx, loadLensDeployment } from '../../deployer-tooling/deployments'
 import { join } from 'path';
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 const fs = require('fs')

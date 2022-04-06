@@ -8,7 +8,7 @@ import {
     InteractionLogic__factory, LensHub__factory, PublishingLogic__factory,
     TransparentUpgradeableProxy__factory
 } from '../typechain-types';
-import { loadDeploymentCtx, transformEthersInstance, transformVendoredInstance } from './helpers/deployments';
+import { loadDeploymentCtx, transformEthersInstance, transformVendoredInstance } from '../../deployer-tooling/deployments'
 import { deployContract, waitForTx } from './helpers/utils';
 
 task('sync-deployments', 'syncs vendored deployments with our custom format').setAction(async ({ }, hre) => {
